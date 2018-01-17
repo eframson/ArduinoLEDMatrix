@@ -18,19 +18,30 @@
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <script>
 var selected = new Array();
+function clearArray() {
+	console.log("Clearin' boss");
+	selected = [];
+}
+function alertSelected() {
+	var selectedAsString = selected.join();
+	alert(selectedAsString);
+}
 $( function() {
 	$( "#selectable" ).selectable({
 	    selected: function(event, ui){
 	        selected.push(ui.selected.innerHTML);
-	    },
+	    }/*,
 	    start: function(event, ui){
 	        selected = [];
-	    }		
+	    }*/	
 	});
 } );
 </script>
 </head>
 <body>
+
+<button type="button" onclick="clearArray()" style="width: auto;height: auto;">clear selected array</button>
+<button type="button" onclick="alertSelected()" style="width: auto;height: auto;">show selections</button>
 
 <ol id="selectable">
 <li class="ui-state-default">{7,0}</li>
@@ -98,7 +109,6 @@ $( function() {
 <li class="ui-state-default">{0,6}</li>
 <li class="ui-state-default">{0,7}</li>
 </ol>
-
 
 </body>
 </html>
