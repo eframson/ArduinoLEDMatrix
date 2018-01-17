@@ -78,18 +78,6 @@ void setup() {
   //movingDiamondPattern(blue);
 }
 
-void loop() {
-  //expandingSquarePattern();
-  //checkerboardPattern();
-  travellingQuadrantPattern();
-  /*yColorWipe();
-  xColorWipe();
-  expandingSquarePattern();*/
-  /*movingDiamondPattern(blue);
-  movingDiamondPattern(red);
-  movingDiamondPattern(green);*/
-}
-
 // Fill the dots one after the other with a color
 void colorWipe(uint32_t c, uint8_t wait, Adafruit_NeoPixel &strip) {
   for(uint16_t i=0; i < NUM_PIXELS_PER_STRIP; i++) {
@@ -385,7 +373,7 @@ void movingWavePattern() {
 
 }
 
-void checkerboardPattern() {
+void checkerboardPattern(int num_times_to_do = 1) {
   int num_in_array = 32;
   int num_arrays_in_array = 2;
   int i = 0;
@@ -419,10 +407,10 @@ void checkerboardPattern() {
     checkerboard_two,
   };
 
-  for( i = 0; i < num_arrays_in_array; i++ ) {
+  for( i = 0; i < (num_arrays_in_array * num_times_to_do); i++ ) {
     turnStripsOff();
     for( j = 0; j < num_in_array; j++ ) {
-      setPixelColorAtCoords(all_shapes[i][j].x, all_shapes[i][j].y, colors[i]);
+      setPixelColorAtCoords(all_shapes[i % num_arrays_in_array][j].x, all_shapes[i % num_arrays_in_array][j].y, colors[i % num_arrays_in_array]);
     }
     showAllStrips();
     delay(1000);
@@ -489,3 +477,13 @@ void travellingQuadrantPattern() {
 
 }
 
+void loop() {
+  checkerboardPattern(5);
+  travellingQuadrantPattern();
+  yColorWipe();
+  xColorWipe();
+  expandingSquarePattern();
+  movingDiamondPattern(blue);
+  movingDiamondPattern(red);
+  movingDiamondPattern(green);
+}
