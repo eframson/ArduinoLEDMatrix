@@ -67,17 +67,6 @@ uint32_t rainbow[TOTAL_COLORS] = {
   raspberry
 };
 
-void setup() {
-  Serial.begin(9600);
-  for( unsigned int i = 0; i < 8; i++ ) {
-    all_strips[i].begin();
-    all_strips[i].setBrightness(16);
-    all_strips[i].show();
-  }
-  
-  //movingDiamondPattern(blue);
-}
-
 // Fill the dots one after the other with a color
 void colorWipe(uint32_t c, uint8_t wait, Adafruit_NeoPixel &strip) {
   for(uint16_t i=0; i < NUM_PIXELS_PER_STRIP; i++) {
@@ -140,11 +129,6 @@ void showAllStrips() {
   for( i = 0; i < NUM_STRIPS; i++ ) {
     all_strips[i].show();
   }
-}
-
-void rainbowExpandingSquarePattern() {
-  //This was supposed to take a dynamic number of colors and cycle through as appropriate, maybe some modulo stuff, whatever...
-  //Not going to figure this out for now, just modifying expandingSquarePattern to have the full rainbow
 }
 
 void expandingSquarePattern() {
@@ -217,89 +201,94 @@ void expandingSquarePattern() {
   }
 }
 
-void movingDiamondPattern(uint32_t color) {
-  
-  unsigned int i = 0;
-  unsigned int j = 0;
-  unsigned int array_size = 16;
-  unsigned int num_arrays_in_array = 8;
-  
-  xypair diamond_one[array_size] = {
+void movingDiamondPattern(int num_times_to_do = 1, uint32_t array_of_colors[] = rainbow, int num_colors = TOTAL_COLORS, int wait = 500) {
+
+  //num_times_to_do should be the main criterion to satisfy. Colors and num_shapes should both be able to independently adapt
+  int i = 0;
+  int j = 0;
+  int num_shapes = 8;
+  int num_pixels_in_each_shape = 16;
+
+  xypair shape_1[num_pixels_in_each_shape] = {
     {0,3},{0,4},{7,4},{7,3},
     {4,7},{3,7},{3,0},{4,0},
     {5,1},{6,2},{6,5},{5,6},
     {2,6},{1,5},{1,2},{2,1}
   };
-  
-  xypair diamond_two[array_size] = {
+
+  xypair shape_2[num_pixels_in_each_shape] = {
     {3,0},{4,0},{4,1},{3,1},
     {5,2},{6,3},{7,4},{7,5},
     {2,2},{1,3},{0,4},{0,5},
     {1,6},{2,7},{6,6},{5,7}
   };
-  
-  xypair diamond_three[array_size] = {
+
+  xypair shape_3[num_pixels_in_each_shape] = {
     {5,0},{2,0},{3,1},{4,1},
     {4,2},{3,2},{2,3},{5,3},
     {6,4},{7,5},{7,6},{1,4},
     {0,5},{0,6},{1,7},{6,7}
   };
-  
-  xypair diamond_four[array_size] = {
+
+  xypair shape_4[num_pixels_in_each_shape] = {
     {4,2},{3,2},{3,3},{4,3},
     {5,4},{6,5},{7,6},{7,7},
     {2,4},{1,5},{0,6},{0,7},
     {2,1},{1,0},{5,1},{6,0}
   };
-  
-  xypair diamond_five[array_size] = {
+
+  xypair shape_5[num_pixels_in_each_shape] = {
     {4,3},{3,3},{3,4},{4,4},
     {5,5},{6,6},{7,7},{2,5},
     {1,6},{0,7},{2,2},{1,1},
     {0,0},{5,2},{6,1},{7,0}
   };
-  
-  xypair diamond_six[array_size] = {
+
+  xypair shape_6[num_pixels_in_each_shape] = {
     {4,4},{3,4},{3,5},{4,5},
     {5,6},{6,7},{2,6},{1,7},
     {2,3},{1,2},{0,1},{0,0},
     {5,3},{6,2},{7,1},{7,0}
   };
-  
-  xypair diamond_seven[array_size] = {
+
+  xypair shape_7[num_pixels_in_each_shape] = {
     {4,5},{3,5},{3,6},{4,6},
     {5,7},{2,7},{2,4},{1,3},
     {0,2},{0,1},{1,0},{5,4},
     {6,3},{7,2},{7,1},{6,0}
   };
-  
-  xypair diamond_eight[array_size] = {
+
+  xypair shape_8[num_pixels_in_each_shape] = {
     {3,7},{3,6},{4,6},{4,7},
     {2,5},{1,4},{0,3},{0,2},
     {1,1},{2,0},{5,5},{6,4},
     {7,3},{7,2},{6,1},{5,0}
   };
 
-  xypair *all_shapes[num_arrays_in_array] = {
-    diamond_one,
-    diamond_two,
-    diamond_three,
-    diamond_four,
-    diamond_five,
-    diamond_six,
-    diamond_seven,
-    diamond_eight
+  xypair *all_shapes[num_shapes] = {
+    shape_1,
+    shape_2,
+    shape_3,
+    shape_4,
+    shape_5,
+    shape_6,
+    shape_7,
+    shape_8
   };
 
-  for( i = 0; i < num_arrays_in_array; i++ ) {
+  for( i = 0; i < (num_shapes * num_times_to_do); i++ ) {
     turnStripsOff();
-    for( j = 0; j < array_size; j++ ) {
-      setPixelColorAtCoords(all_shapes[i][j].x, all_shapes[i][j].y, color);
+    for( j = 0; j < num_pixels_in_each_shape; j++ ) {
+      setPixelColorAtCoords(all_shapes[i % num_shapes][j].x, all_shapes[i % num_shapes][j].y, array_of_colors[i % num_colors]);
     }
     showAllStrips();
-    delay(100);
+    delay(wait);
   }
+
 }
+
+
+
 
 void movingWavePattern() {
   int num_in_array = 36;
@@ -418,7 +407,7 @@ void checkerboardPattern(int num_times_to_do = 1) {
 
 }
 
-void travellingQuadrantPattern() {
+void travellingTriangles() {
   int num_in_array = 12;
   int num_arrays_in_array = 4;
   int i = 0;
@@ -523,6 +512,156 @@ void fourQuadrants(int num_times_to_do = 1, uint32_t array_of_colors[] = rainbow
 
   for( i = 0; i < (num_shapes * num_times_to_do); i++ ) {
     turnStripsOff();
+    for( j = 0; j < num_pixels_in_each_shape; j++ ) {
+      setPixelColorAtCoords(all_shapes[i % num_shapes][j].x, all_shapes[i % num_shapes][j].y, array_of_colors[i % num_colors]);
+    }
+    showAllStrips();
+    delay(wait);
+  }
+
+}
+
+void backAndForthCorners(int num_times_to_do = 1, uint32_t array_of_colors[] = rainbow, int num_colors = TOTAL_COLORS, int wait = 500) {
+
+  //num_times_to_do should be the main criterion to satisfy. Colors and num_shapes should both be able to independently adapt
+  int i = 0;
+  int j = 0;
+  int num_shapes = 16;
+  int num_pixels_in_each_shape = 15;
+
+  xypair shape_1[num_pixels_in_each_shape] = {
+    {0,7},{0,7},{0,7},{0,7},
+    {0,7},{0,7},{0,7},{0,7},
+    {0,7},{0,7},{0,7},{0,7},
+    {0,7},{0,7},{0,7}
+  };
+
+  xypair shape_2[num_pixels_in_each_shape] = {
+    {0,6},{1,6},{1,7},{0,6},
+    {1,6},{1,7},{0,6},{1,6},
+    {1,7},{0,6},{1,6},{1,7},
+    {0,6},{1,6},{1,7}
+  };
+
+  xypair shape_3[num_pixels_in_each_shape] = {
+    {0,5},{1,5},{2,5},{2,6},
+    {2,7},{0,5},{1,5},{2,5},
+    {2,6},{2,7},{0,5},{1,5},
+    {2,5},{2,6},{0,5}
+  };
+
+  xypair shape_4[num_pixels_in_each_shape] = {
+    {0,4},{1,4},{2,4},{3,4},
+    {3,5},{3,6},{3,7},{0,4},
+    {1,4},{2,4},{3,4},{3,5},
+    {3,6},{3,7},{0,4}
+  };
+
+  xypair shape_5[num_pixels_in_each_shape] = {
+    {0,3},{1,3},{2,3},{3,3},
+    {4,3},{4,4},{4,5},{4,6},
+    {4,7},{0,3},{1,3},{2,3},
+    {3,3},{4,3},{4,4}
+  };
+
+  xypair shape_6[num_pixels_in_each_shape] = {
+    {0,2},{1,2},{2,2},{3,2},
+    {4,2},{5,2},{5,3},{5,4},
+    {5,5},{5,6},{5,7},{0,2},
+    {1,2},{2,2},{3,2}
+  };
+
+  xypair shape_7[num_pixels_in_each_shape] = {
+    {0,1},{1,1},{2,1},{3,1},
+    {4,1},{5,1},{6,1},{6,2},
+    {6,3},{6,4},{6,5},{6,6},
+    {6,7},{0,1},{1,1}
+  };
+
+  xypair shape_8[num_pixels_in_each_shape] = {
+    {7,0},{6,0},{5,0},{4,0},
+    {3,0},{2,0},{1,0},{0,0},
+    {7,1},{7,2},{7,3},{7,4},
+    {7,5},{7,6},{7,7}
+  };
+
+  xypair shape_9[num_pixels_in_each_shape] = {
+    {7,0},{7,0},{7,0},{7,0},
+    {7,0},{7,0},{7,0},{7,0},
+    {7,0},{7,0},{7,0},{7,0},
+    {7,0},{7,0},{7,0}
+  };
+
+  xypair shape_10[num_pixels_in_each_shape] = {
+    {6,0},{6,1},{7,1},{6,0},
+    {6,1},{7,1},{6,0},{6,1},
+    {7,1},{6,0},{6,1},{7,1},
+    {6,0},{6,1},{7,1}
+  };
+
+  xypair shape_11[num_pixels_in_each_shape] = {
+    {5,0},{5,1},{5,2},{6,2},
+    {7,2},{5,0},{5,1},{5,2},
+    {6,2},{7,2},{5,0},{5,1},
+    {5,2},{6,2},{5,0}
+  };
+
+  xypair shape_12[num_pixels_in_each_shape] = {
+    {4,0},{4,1},{4,2},{4,3},
+    {5,3},{6,3},{7,3},{4,0},
+    {4,1},{4,2},{4,3},{5,3},
+    {6,3},{7,3},{4,0}
+  };
+
+  xypair shape_13[num_pixels_in_each_shape] = {
+    {3,0},{3,1},{3,2},{3,3},
+    {3,4},{4,4},{5,4},{6,4},
+    {7,4},{3,0},{3,1},{3,2},
+    {3,3},{3,4},{4,4}
+  };
+
+  xypair shape_14[num_pixels_in_each_shape] = {
+    {2,0},{2,1},{2,2},{2,3},
+    {2,4},{2,5},{3,5},{4,5},
+    {5,5},{6,5},{7,5},{2,0},
+    {2,1},{2,2},{2,3}
+  };
+
+  xypair shape_15[num_pixels_in_each_shape] = {
+    {1,0},{1,1},{1,2},{1,3},
+    {1,4},{1,5},{1,6},{2,6},
+    {3,6},{4,6},{5,6},{6,6},
+    {7,6},{1,0},{1,1}
+  };
+
+  xypair shape_16[num_pixels_in_each_shape] = {
+    {0,7},{0,6},{0,5},{0,4},
+    {0,3},{0,2},{0,1},{0,0},
+    {1,7},{2,7},{3,7},{4,7},
+    {5,7},{6,7},{7,7}
+  };
+
+  xypair *all_shapes[num_shapes] = {
+    shape_1,
+    shape_2,
+    shape_3,
+    shape_4,
+    shape_5,
+    shape_6,
+    shape_7,
+    shape_8,
+    shape_9,
+    shape_10,
+    shape_11,
+    shape_12,
+    shape_13,
+    shape_14,
+    shape_15,
+    shape_16
+  };
+
+  for( i = 0; i < (num_shapes * num_times_to_do); i++ ) {
+    turnStripsOff();
     for( j = 0; j < num_shapes; j++ ) {
       setPixelColorAtCoords(all_shapes[i % num_shapes][j].x, all_shapes[i % num_shapes][j].y, array_of_colors[i % num_colors]);
     }
@@ -566,13 +705,24 @@ void TEMPLATE_repeatAPatternXNumberOfTimesWithYColors(int num_times_to_do = 1, u
 }
 */
 
+void setup() {
+  Serial.begin(9600);
+  for( unsigned int i = 0; i < 8; i++ ) {
+    all_strips[i].begin();
+    all_strips[i].setBrightness(16);
+    all_strips[i].show();
+  }  
+}
+
 void loop() {
+  fourQuadrants(3);
   checkerboardPattern(5);
-  travellingQuadrantPattern();
+  travellingTriangles();
   yColorWipe();
   xColorWipe();
   expandingSquarePattern();
-  movingDiamondPattern(blue);
-  movingDiamondPattern(red);
-  movingDiamondPattern(green);
+  movingDiamondPattern(6, rainbow, TOTAL_COLORS, 100);
+  backAndForthCorners(1, &red, 1, 50);
+  backAndForthCorners(1, &green, 1, 50);
+  backAndForthCorners(1, &blue, 1, 50);
 }
