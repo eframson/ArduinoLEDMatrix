@@ -13,18 +13,33 @@
 #selectable .ui-selected { background: #F39814; color: white; }
 #selectable { list-style-type: none; margin: 0; padding: 0; width: 380px; }
 #selectable li { margin: 3px; padding: 1px; float: left; width: 35px; height: 20px; font-size: 1em; text-align: center; cursor: pointer;}
+.noselect {
+-moz-user-select: none; /* Firefox */
+    user-select: none; /* Non-prefixed version, currently
+                          supported by Chrome and Opera */
+}
 </style>
 <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
 <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 <script>
 var selected = new Array();
 function clearArray() {
-	console.log("Clearin' boss");
 	selected = [];
+	$('#selectable .ui-selected').removeClass('ui-selected')
 }
 function alertSelected() {
 	var selectedAsString = selected.join();
-	alert(selectedAsString);
+	var outputStr = "";
+	for(var i = 0; i < selected.length; i++){
+		if(i > 0){
+			outputStr += ",";
+			if(i % 4 == 0){
+				outputStr += "\n";
+			}
+		}
+		outputStr += selected[i];
+	}
+	alert(outputStr);
 	clearArray();
 }
 $( function() {
@@ -45,70 +60,70 @@ $( function() {
 <button type="button" onclick="alertSelected()" style="width: auto;height: auto;">show selections</button>
 
 <ol id="selectable">
-<li class="ui-state-default">{7,0}</li>
-<li class="ui-state-default">{7,1}</li>
-<li class="ui-state-default">{7,2}</li>
-<li class="ui-state-default">{7,3}</li>
-<li class="ui-state-default">{7,4}</li>
-<li class="ui-state-default">{7,5}</li>
-<li class="ui-state-default">{7,6}</li>
-<li class="ui-state-default">{7,7}</li>
-<li class="ui-state-default">{6,0}</li>
-<li class="ui-state-default">{6,1}</li>
-<li class="ui-state-default">{6,2}</li>
-<li class="ui-state-default">{6,3}</li>
-<li class="ui-state-default">{6,4}</li>
-<li class="ui-state-default">{6,5}</li>
-<li class="ui-state-default">{6,6}</li>
-<li class="ui-state-default">{6,7}</li>
-<li class="ui-state-default">{5,0}</li>
-<li class="ui-state-default">{5,1}</li>
-<li class="ui-state-default">{5,2}</li>
-<li class="ui-state-default">{5,3}</li>
-<li class="ui-state-default">{5,4}</li>
-<li class="ui-state-default">{5,5}</li>
-<li class="ui-state-default">{5,6}</li>
-<li class="ui-state-default">{5,7}</li>
-<li class="ui-state-default">{4,0}</li>
-<li class="ui-state-default">{4,1}</li>
-<li class="ui-state-default">{4,2}</li>
-<li class="ui-state-default">{4,3}</li>
-<li class="ui-state-default">{4,4}</li>
-<li class="ui-state-default">{4,5}</li>
-<li class="ui-state-default">{4,6}</li>
-<li class="ui-state-default">{4,7}</li>
-<li class="ui-state-default">{3,0}</li>
-<li class="ui-state-default">{3,1}</li>
-<li class="ui-state-default">{3,2}</li>
-<li class="ui-state-default">{3,3}</li>
-<li class="ui-state-default">{3,4}</li>
-<li class="ui-state-default">{3,5}</li>
-<li class="ui-state-default">{3,6}</li>
-<li class="ui-state-default">{3,7}</li>
-<li class="ui-state-default">{2,0}</li>
-<li class="ui-state-default">{2,1}</li>
-<li class="ui-state-default">{2,2}</li>
-<li class="ui-state-default">{2,3}</li>
-<li class="ui-state-default">{2,4}</li>
-<li class="ui-state-default">{2,5}</li>
-<li class="ui-state-default">{2,6}</li>
-<li class="ui-state-default">{2,7}</li>
-<li class="ui-state-default">{1,0}</li>
-<li class="ui-state-default">{1,1}</li>
-<li class="ui-state-default">{1,2}</li>
-<li class="ui-state-default">{1,3}</li>
-<li class="ui-state-default">{1,4}</li>
-<li class="ui-state-default">{1,5}</li>
-<li class="ui-state-default">{1,6}</li>
-<li class="ui-state-default">{1,7}</li>
-<li class="ui-state-default">{0,0}</li>
-<li class="ui-state-default">{0,1}</li>
-<li class="ui-state-default">{0,2}</li>
-<li class="ui-state-default">{0,3}</li>
-<li class="ui-state-default">{0,4}</li>
-<li class="ui-state-default">{0,5}</li>
-<li class="ui-state-default">{0,6}</li>
-<li class="ui-state-default">{0,7}</li>
+<li class="ui-state-default noselect">{7,0}</li>
+<li class="ui-state-default noselect">{7,1}</li>
+<li class="ui-state-default noselect">{7,2}</li>
+<li class="ui-state-default noselect">{7,3}</li>
+<li class="ui-state-default noselect">{7,4}</li>
+<li class="ui-state-default noselect">{7,5}</li>
+<li class="ui-state-default noselect">{7,6}</li>
+<li class="ui-state-default noselect">{7,7}</li>
+<li class="ui-state-default noselect">{6,0}</li>
+<li class="ui-state-default noselect">{6,1}</li>
+<li class="ui-state-default noselect">{6,2}</li>
+<li class="ui-state-default noselect">{6,3}</li>
+<li class="ui-state-default noselect">{6,4}</li>
+<li class="ui-state-default noselect">{6,5}</li>
+<li class="ui-state-default noselect">{6,6}</li>
+<li class="ui-state-default noselect">{6,7}</li>
+<li class="ui-state-default noselect">{5,0}</li>
+<li class="ui-state-default noselect">{5,1}</li>
+<li class="ui-state-default noselect">{5,2}</li>
+<li class="ui-state-default noselect">{5,3}</li>
+<li class="ui-state-default noselect">{5,4}</li>
+<li class="ui-state-default noselect">{5,5}</li>
+<li class="ui-state-default noselect">{5,6}</li>
+<li class="ui-state-default noselect">{5,7}</li>
+<li class="ui-state-default noselect">{4,0}</li>
+<li class="ui-state-default noselect">{4,1}</li>
+<li class="ui-state-default noselect">{4,2}</li>
+<li class="ui-state-default noselect">{4,3}</li>
+<li class="ui-state-default noselect">{4,4}</li>
+<li class="ui-state-default noselect">{4,5}</li>
+<li class="ui-state-default noselect">{4,6}</li>
+<li class="ui-state-default noselect">{4,7}</li>
+<li class="ui-state-default noselect">{3,0}</li>
+<li class="ui-state-default noselect">{3,1}</li>
+<li class="ui-state-default noselect">{3,2}</li>
+<li class="ui-state-default noselect">{3,3}</li>
+<li class="ui-state-default noselect">{3,4}</li>
+<li class="ui-state-default noselect">{3,5}</li>
+<li class="ui-state-default noselect">{3,6}</li>
+<li class="ui-state-default noselect">{3,7}</li>
+<li class="ui-state-default noselect">{2,0}</li>
+<li class="ui-state-default noselect">{2,1}</li>
+<li class="ui-state-default noselect">{2,2}</li>
+<li class="ui-state-default noselect">{2,3}</li>
+<li class="ui-state-default noselect">{2,4}</li>
+<li class="ui-state-default noselect">{2,5}</li>
+<li class="ui-state-default noselect">{2,6}</li>
+<li class="ui-state-default noselect">{2,7}</li>
+<li class="ui-state-default noselect">{1,0}</li>
+<li class="ui-state-default noselect">{1,1}</li>
+<li class="ui-state-default noselect">{1,2}</li>
+<li class="ui-state-default noselect">{1,3}</li>
+<li class="ui-state-default noselect">{1,4}</li>
+<li class="ui-state-default noselect">{1,5}</li>
+<li class="ui-state-default noselect">{1,6}</li>
+<li class="ui-state-default noselect">{1,7}</li>
+<li class="ui-state-default noselect">{0,0}</li>
+<li class="ui-state-default noselect">{0,1}</li>
+<li class="ui-state-default noselect">{0,2}</li>
+<li class="ui-state-default noselect">{0,3}</li>
+<li class="ui-state-default noselect">{0,4}</li>
+<li class="ui-state-default noselect">{0,5}</li>
+<li class="ui-state-default noselect">{0,6}</li>
+<li class="ui-state-default noselect">{0,7}</li>
 </ol>
 
 </body>
