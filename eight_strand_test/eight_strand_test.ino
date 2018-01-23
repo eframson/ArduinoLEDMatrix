@@ -32,8 +32,8 @@ Adafruit_NeoPixel strip_eight = Adafruit_NeoPixel(NUM_PIXELS_PER_STRIP, STRIP_EI
 Adafruit_NeoPixel all_strips[NUM_STRIPS] = {strip_one, strip_two, strip_three, strip_four, strip_five, strip_six, strip_seven, strip_eight};
 
 struct xypair {
-  int x;
-  int y;
+  char x;
+  char y;
 };
 
 #define TOTAL_COLORS 12
@@ -67,6 +67,12 @@ uint32_t rainbow[TOTAL_COLORS] = {
   raspberry
 };
 
+int get_free_ram() {
+  extern int __heap_start, *__brkval; 
+  int v; 
+  return (int) &v - (__brkval == 0 ? (int) &__heap_start : (int) __brkval); 
+}
+
 // Fill the dots one after the other with a color
 void colorWipe(uint32_t c, uint8_t wait, Adafruit_NeoPixel &strip) {
   for(uint16_t i=0; i < NUM_PIXELS_PER_STRIP; i++) {
@@ -83,7 +89,7 @@ void colorWipeWithoutShowOrDelay(uint32_t c, Adafruit_NeoPixel &strip) {
 }
 
 void xColorWipe() {
-  unsigned int i = 0;
+  char i = 0;
 
   for( i = 0; i < NUM_STRIPS; i++ ) {
     colorWipe(all_strips[i].Color(255, 0, 0), 50, all_strips[i]);
@@ -97,9 +103,9 @@ void xColorWipe() {
 }
 
 void yColorWipe() {
-  unsigned int i = 0;
-  unsigned int j = 0;
-  unsigned int c = 0;
+  char i = 0;
+  char j = 0;
+  char c = 0;
   
   uint32_t colors[3] = {red, green, blue};
   for( c = 0; c < 3; c++ ) {
@@ -113,27 +119,27 @@ void yColorWipe() {
   }
 }
 
-void setPixelColorAtCoords(int x, int y, uint32_t color) {
+void setPixelColorAtCoords(char x, char y, uint32_t color) {
   all_strips[x].setPixelColor(y, color);
 }
 
 void turnStripsOff() {
-  unsigned int i = 0;
+  char i = 0;
   for( i = 0; i < NUM_STRIPS; i++ ) {
     colorWipeWithoutShowOrDelay(all_strips[i].Color(0, 0, 0), all_strips[i]);
   }
 }
 
 void showAllStrips() {
-  unsigned int i = 0;
+  char i = 0;
   for( i = 0; i < NUM_STRIPS; i++ ) {
     all_strips[i].show();
   }
 }
 
 void expandingSquarePattern() {
-  unsigned int i = 0;
-  unsigned int j = 0;
+  char i = 0;
+  char j = 0;
 
   //I'm not sure how to deal with an array of dynamically-sized arrays, so I'm just populating
   //them all with dummy (repeated) values where appropriate. Worst case scenario is it's
@@ -204,10 +210,10 @@ void expandingSquarePattern() {
 void movingDiamondPattern(int num_times_to_do = 1, uint32_t array_of_colors[] = rainbow, int num_colors = TOTAL_COLORS, int wait = 500) {
 
   //num_times_to_do should be the main criterion to satisfy. Colors and num_shapes should both be able to independently adapt
-  int i = 0;
-  int j = 0;
-  int num_shapes = 8;
-  int num_pixels_in_each_shape = 16;
+  char i = 0;
+  char j = 0;
+  char num_shapes = 8;
+  char num_pixels_in_each_shape = 16;
 
   xypair shape_1[num_pixels_in_each_shape] = {
     {0,3},{0,4},{7,4},{7,3},
@@ -293,8 +299,8 @@ void movingDiamondPattern(int num_times_to_do = 1, uint32_t array_of_colors[] = 
 void movingWavePattern() {
   int num_in_array = 36;
   int num_arrays_in_array = 4;
-  int i = 0;
-  int j = 0;
+  char i = 0;
+  char j = 0;
   
   xypair waveform_one[num_in_array] = {
     {7,0},{6,0},{5,0},{4,0},
@@ -365,8 +371,8 @@ void movingWavePattern() {
 void checkerboardPattern(int num_times_to_do = 1) {
   int num_in_array = 32;
   int num_arrays_in_array = 2;
-  int i = 0;
-  int j = 0;
+  char i = 0;
+  char j = 0;
   uint32_t colors[2] = {ocean, orange};
   
   xypair checkerboard_one[num_in_array] = {
@@ -410,8 +416,8 @@ void checkerboardPattern(int num_times_to_do = 1) {
 void travellingTriangles() {
   int num_in_array = 12;
   int num_arrays_in_array = 4;
-  int i = 0;
-  int j = 0;
+  char i = 0;
+  char j = 0;
   int k = 0;
 
   xypair x_pattern[16] = {
@@ -469,12 +475,13 @@ void travellingTriangles() {
 void fourQuadrants(int num_times_to_do = 1, uint32_t array_of_colors[] = rainbow, int num_colors = TOTAL_COLORS, int wait = 500) {
 
   //num_times_to_do should be the main criterion to satisfy. Colors and num_shapes should both be able to independently adapt
-  int i = 0;
-  int j = 0;
-  int num_shapes = 4;
-  int num_pixels_in_each_shape = 16;
+  char i = 0;
+  char j = 0;
+  char num_shapes = 4;
+  char num_pixels_in_each_shape = 17;
 
   xypair shape_1[num_pixels_in_each_shape] = {
+    {17,17},
     {7,0},{7,1},{7,2},{7,3},
     {6,0},{6,1},{6,2},{6,3},
     {5,0},{5,1},{5,2},{5,3},
@@ -482,6 +489,7 @@ void fourQuadrants(int num_times_to_do = 1, uint32_t array_of_colors[] = rainbow
   };
 
   xypair shape_2[num_pixels_in_each_shape] = {
+    {17,17},
     {7,4},{7,5},{7,6},{7,7},
     {6,4},{6,5},{6,6},{6,7},
     {5,4},{5,5},{5,6},{5,7},
@@ -489,6 +497,7 @@ void fourQuadrants(int num_times_to_do = 1, uint32_t array_of_colors[] = rainbow
   };
 
   xypair shape_3[num_pixels_in_each_shape] = {
+    {17,17},
     {3,4},{3,5},{3,6},{3,7},
     {2,4},{2,5},{2,6},{2,7},
     {1,4},{1,5},{1,6},{1,7},
@@ -496,6 +505,7 @@ void fourQuadrants(int num_times_to_do = 1, uint32_t array_of_colors[] = rainbow
   };
 
   xypair shape_4[num_pixels_in_each_shape] = {
+    {17,17},
     {3,0},{3,1},{3,2},{3,3},
     {2,0},{2,1},{2,2},{2,3},
     {1,0},{1,1},{1,2},{1,3},
@@ -510,9 +520,12 @@ void fourQuadrants(int num_times_to_do = 1, uint32_t array_of_colors[] = rainbow
     shape_4
   };
 
+  int num_pixels_in_array;
+
   for( i = 0; i < (num_shapes * num_times_to_do); i++ ) {
     turnStripsOff();
-    for( j = 0; j < num_pixels_in_each_shape; j++ ) {
+    num_pixels_in_array = all_shapes[i % num_shapes][0].x;
+    for( j = 1; j < num_pixels_in_array; j++ ) {
       setPixelColorAtCoords(all_shapes[i % num_shapes][j].x, all_shapes[i % num_shapes][j].y, array_of_colors[i % num_colors]);
     }
     showAllStrips();
@@ -521,120 +534,118 @@ void fourQuadrants(int num_times_to_do = 1, uint32_t array_of_colors[] = rainbow
 
 }
 
-void backAndForthCorners(int num_times_to_do = 1, uint32_t array_of_colors[] = rainbow, int num_colors = TOTAL_COLORS, int wait = 500) {
+//void backAndForthCorners(int num_times_to_do = 1, uint32_t array_of_colors[] = &rainbow, int num_colors = TOTAL_COLORS, int wait = 500) {
+void backAndForthCorners() {
 
   //num_times_to_do should be the main criterion to satisfy. Colors and num_shapes should both be able to independently adapt
-  int i = 0;
-  int j = 0;
-  int num_shapes = 16;
-  int num_pixels_in_each_shape = 15;
+  char i = 0;
+  char j = 0;
+  char num_shapes = 16;
+  char num_pixels_in_each_shape = 15;
+  
+  int num_times_to_do = 1;
+  uint32_t array_of_colors[1] = {red};
+  int num_colors = 1;
+  int wait = 50;
 
-  xypair shape_1[num_pixels_in_each_shape] = {
-    {0,7},{0,7},{0,7},{0,7},
-    {0,7},{0,7},{0,7},{0,7},
-    {0,7},{0,7},{0,7},{0,7},
-    {0,7},{0,7},{0,7}
+  xypair shape_1[2] = {
+    {2,2},
+    {0,7}
   };
 
-  xypair shape_2[num_pixels_in_each_shape] = {
-    {0,6},{1,6},{1,7},{0,6},
-    {1,6},{1,7},{0,6},{1,6},
-    {1,7},{0,6},{1,6},{1,7},
+  xypair shape_2[4] = {
+    {4,4},
     {0,6},{1,6},{1,7}
   };
 
-  xypair shape_3[num_pixels_in_each_shape] = {
+  xypair shape_3[6] = {
+    {6,6},
     {0,5},{1,5},{2,5},{2,6},
-    {2,7},{0,5},{1,5},{2,5},
-    {2,6},{2,7},{0,5},{1,5},
-    {2,5},{2,6},{0,5}
+    {2,7}
   };
 
-  xypair shape_4[num_pixels_in_each_shape] = {
+  xypair shape_4[8] = {
+    {8,8},
     {0,4},{1,4},{2,4},{3,4},
-    {3,5},{3,6},{3,7},{0,4},
-    {1,4},{2,4},{3,4},{3,5},
-    {3,6},{3,7},{0,4}
+    {3,5},{3,6},{3,7}
   };
 
-  xypair shape_5[num_pixels_in_each_shape] = {
+  xypair shape_5[10] = {
+    {10,10},
     {0,3},{1,3},{2,3},{3,3},
     {4,3},{4,4},{4,5},{4,6},
-    {4,7},{0,3},{1,3},{2,3},
-    {3,3},{4,3},{4,4}
+    {4,7}
   };
 
-  xypair shape_6[num_pixels_in_each_shape] = {
+  xypair shape_6[12] = {
+    {12,12},
     {0,2},{1,2},{2,2},{3,2},
     {4,2},{5,2},{5,3},{5,4},
-    {5,5},{5,6},{5,7},{0,2},
-    {1,2},{2,2},{3,2}
+    {5,5},{5,6},{5,7}
   };
 
-  xypair shape_7[num_pixels_in_each_shape] = {
+  xypair shape_7[14] = {
+    {14,14},
     {0,1},{1,1},{2,1},{3,1},
     {4,1},{5,1},{6,1},{6,2},
     {6,3},{6,4},{6,5},{6,6},
-    {6,7},{0,1},{1,1}
+    {6,7}
   };
 
-  xypair shape_8[num_pixels_in_each_shape] = {
+  xypair shape_8[16] = {
+    {16,16},
     {7,0},{6,0},{5,0},{4,0},
     {3,0},{2,0},{1,0},{0,0},
     {7,1},{7,2},{7,3},{7,4},
     {7,5},{7,6},{7,7}
   };
 
-  xypair shape_9[num_pixels_in_each_shape] = {
-    {7,0},{7,0},{7,0},{7,0},
-    {7,0},{7,0},{7,0},{7,0},
-    {7,0},{7,0},{7,0},{7,0},
-    {7,0},{7,0},{7,0}
+  xypair shape_9[2] = {
+    {2,2},
+    {7,0}
   };
 
-  xypair shape_10[num_pixels_in_each_shape] = {
-    {6,0},{6,1},{7,1},{6,0},
-    {6,1},{7,1},{6,0},{6,1},
-    {7,1},{6,0},{6,1},{7,1},
+  xypair shape_10[4] = {
+    {4,4},
     {6,0},{6,1},{7,1}
   };
 
-  xypair shape_11[num_pixels_in_each_shape] = {
+  xypair shape_11[6] = {
+    {6,6},
     {5,0},{5,1},{5,2},{6,2},
-    {7,2},{5,0},{5,1},{5,2},
-    {6,2},{7,2},{5,0},{5,1},
-    {5,2},{6,2},{5,0}
+    {7,2}
   };
 
-  xypair shape_12[num_pixels_in_each_shape] = {
+  xypair shape_12[8] = {
+    {8,8},
     {4,0},{4,1},{4,2},{4,3},
-    {5,3},{6,3},{7,3},{4,0},
-    {4,1},{4,2},{4,3},{5,3},
-    {6,3},{7,3},{4,0}
+    {5,3},{6,3},{7,3}
   };
 
-  xypair shape_13[num_pixels_in_each_shape] = {
+  xypair shape_13[10] = {
+    {10,10},
     {3,0},{3,1},{3,2},{3,3},
     {3,4},{4,4},{5,4},{6,4},
-    {7,4},{3,0},{3,1},{3,2},
-    {3,3},{3,4},{4,4}
+    {7,4}
   };
 
-  xypair shape_14[num_pixels_in_each_shape] = {
+  xypair shape_14[12] = {
+    {12,12},
     {2,0},{2,1},{2,2},{2,3},
     {2,4},{2,5},{3,5},{4,5},
-    {5,5},{6,5},{7,5},{2,0},
-    {2,1},{2,2},{2,3}
+    {5,5},{6,5},{7,5}
   };
 
-  xypair shape_15[num_pixels_in_each_shape] = {
+  xypair shape_15[14] = {
+    {14,14},
     {1,0},{1,1},{1,2},{1,3},
     {1,4},{1,5},{1,6},{2,6},
     {3,6},{4,6},{5,6},{6,6},
-    {7,6},{1,0},{1,1}
+    {7,6}
   };
 
-  xypair shape_16[num_pixels_in_each_shape] = {
+  xypair shape_16[16] = {
+    {16,16},
     {0,7},{0,6},{0,5},{0,4},
     {0,3},{0,2},{0,1},{0,0},
     {1,7},{2,7},{3,7},{4,7},
@@ -660,9 +671,12 @@ void backAndForthCorners(int num_times_to_do = 1, uint32_t array_of_colors[] = r
     shape_16
   };
 
+  int num_pixels_in_array;
+
   for( i = 0; i < (num_shapes * num_times_to_do); i++ ) {
     turnStripsOff();
-    for( j = 0; j < num_shapes; j++ ) {
+    num_pixels_in_array = all_shapes[i % num_shapes][0].x;
+    for( j = 1; j < num_pixels_in_array; j++ ) {
       setPixelColorAtCoords(all_shapes[i % num_shapes][j].x, all_shapes[i % num_shapes][j].y, array_of_colors[i % num_colors]);
     }
     showAllStrips();
@@ -675,10 +689,10 @@ void backAndForthCorners(int num_times_to_do = 1, uint32_t array_of_colors[] = r
 void TEMPLATE_repeatAPatternXNumberOfTimesWithYColors(int num_times_to_do = 1, uint32_t array_of_colors[] = rainbow, int num_colors = TOTAL_COLORS, int wait = 500) {
 
   //num_times_to_do should be the main criterion to satisfy. Colors and num_shapes should both be able to independently adapt
-  int i = 0;
-  int j = 0;
-  int num_shapes = 0;
-  int num_pixels_in_each_shape = 0;
+  char i = 0;
+  char j = 0;
+  char num_shapes = 0;
+  char num_pixels_in_each_shape = 0;
 
   xypair shape_1[num_pixels_in_each_shape] = {
 
@@ -707,7 +721,8 @@ void TEMPLATE_repeatAPatternXNumberOfTimesWithYColors(int num_times_to_do = 1, u
 
 void setup() {
   Serial.begin(9600);
-  for( unsigned int i = 0; i < 8; i++ ) {
+  Serial.println("Setup");
+  for( char i = 0; i < 8; i++ ) {
     all_strips[i].begin();
     all_strips[i].setBrightness(16);
     all_strips[i].show();
@@ -715,14 +730,15 @@ void setup() {
 }
 
 void loop() {
-  fourQuadrants(3);
-  checkerboardPattern(5);
-  travellingTriangles();
-  yColorWipe();
-  xColorWipe();
-  expandingSquarePattern();
-  movingDiamondPattern(6, rainbow, TOTAL_COLORS, 100);
-  backAndForthCorners(1, &red, 1, 50);
-  backAndForthCorners(1, &green, 1, 50);
-  backAndForthCorners(1, &blue, 1, 50);
+  fourQuadrants();
+  backAndForthCorners();
+  //checkerboardPattern(5);
+  //travellingTriangles();
+  //yColorWipe();
+  //xColorWipe();
+  //expandingSquarePattern();
+  //movingDiamondPattern(6, rainbow, TOTAL_COLORS, 100);
+  //backAndForthCorners(1, &red, 1, 50);
+  //backAndForthCorners(1, &green, 1, 50);
+  //backAndForthCorners(1, &blue, 1, 50);
 }
