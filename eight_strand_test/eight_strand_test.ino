@@ -3,14 +3,14 @@
   #include <avr/power.h>
 #endif
 
-#define STRIP_ONE_PIN 3
-#define STRIP_TWO_PIN 4
-#define STRIP_THREE_PIN 5
-#define STRIP_FOUR_PIN 6
-#define STRIP_FIVE_PIN 7
-#define STRIP_SIX_PIN 8
-#define STRIP_SEVEN_PIN 9
-#define STRIP_EIGHT_PIN 10
+#define STRIP_ONE_PIN 2
+#define STRIP_TWO_PIN 3
+#define STRIP_THREE_PIN 4
+#define STRIP_FOUR_PIN 5
+#define STRIP_FIVE_PIN 6
+#define STRIP_SIX_PIN 7
+#define STRIP_SEVEN_PIN 8
+#define STRIP_EIGHT_PIN 9
 
 #define NUM_PIXELS_PER_STRIP 8
 #define NUM_STRIPS 8
