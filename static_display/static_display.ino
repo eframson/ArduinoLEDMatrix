@@ -12,58 +12,20 @@
 #define NUM_PIXELS_PER_STRIP 8
 #define NUM_STRIPS 8
 
-struct pair {
-  int first;
-  int second;
+struct led_meta {
+  int x;
+  int y;
+  int h;
 };
-
-/*CRGB all_leds_in_parallel[NUM_PIXELS_PER_STRIP];
-CRGB strip_one_leds[NUM_PIXELS_PER_STRIP];
-CRGB strip_two_leds[NUM_PIXELS_PER_STRIP];
-CRGB strip_three_leds[NUM_PIXELS_PER_STRIP];
-CRGB strip_four_leds[NUM_PIXELS_PER_STRIP];
-CRGB strip_five_leds[NUM_PIXELS_PER_STRIP];
-CRGB strip_six_leds[NUM_PIXELS_PER_STRIP];
-CRGB strip_seven_leds[NUM_PIXELS_PER_STRIP];
-CRGB strip_eight_leds[NUM_PIXELS_PER_STRIP];*/
-
-/*CRGB all_strips[NUM_STRIPS] = {
-  strip_one_leds,
-  strip_two_leds,
-  strip_three_leds,
-  strip_four_leds,
-  strip_five_leds,
-  strip_six_leds,
-  strip_seven_leds,
-  strip_eight_leds
-};*/
 
 CRGB leds[NUM_STRIPS][NUM_PIXELS_PER_STRIP];
 int persistent_h = 0;
 
+//led_meta old_leds[10];
+//led_meta new_leds[10];
+led_meta selected_leds[10];
+
 void setup() {
-  /*
-  FastLED.addLeds<NEOPIXEL, STRIP_ONE_PIN>(all_leds_in_parallel, NUM_PIXELS_PER_STRIP);
-  FastLED.addLeds<NEOPIXEL, STRIP_TWO_PIN>(all_leds_in_parallel, NUM_PIXELS_PER_STRIP);
-  FastLED.addLeds<NEOPIXEL, STRIP_THREE_PIN>(all_leds_in_parallel, NUM_PIXELS_PER_STRIP);
-  FastLED.addLeds<NEOPIXEL, STRIP_FOUR_PIN>(all_leds_in_parallel, NUM_PIXELS_PER_STRIP);
-  FastLED.addLeds<NEOPIXEL, STRIP_FIVE_PIN>(all_leds_in_parallel, NUM_PIXELS_PER_STRIP);
-  FastLED.addLeds<NEOPIXEL, STRIP_SIX_PIN>(all_leds_in_parallel, NUM_PIXELS_PER_STRIP);
-  FastLED.addLeds<NEOPIXEL, STRIP_SEVEN_PIN>(all_leds_in_parallel, NUM_PIXELS_PER_STRIP);
-  FastLED.addLeds<NEOPIXEL, STRIP_EIGHT_PIN>(all_leds_in_parallel, NUM_PIXELS_PER_STRIP);
-  */
-
-  /*
-  FastLED.addLeds<NEOPIXEL, STRIP_ONE_PIN>(strip_one_leds, NUM_PIXELS_PER_STRIP);
-  FastLED.addLeds<NEOPIXEL, STRIP_TWO_PIN>(strip_two_leds, NUM_PIXELS_PER_STRIP);
-  FastLED.addLeds<NEOPIXEL, STRIP_THREE_PIN>(strip_three_leds, NUM_PIXELS_PER_STRIP);
-  FastLED.addLeds<NEOPIXEL, STRIP_FOUR_PIN>(strip_four_leds, NUM_PIXELS_PER_STRIP);
-  FastLED.addLeds<NEOPIXEL, STRIP_FIVE_PIN>(strip_five_leds, NUM_PIXELS_PER_STRIP);
-  FastLED.addLeds<NEOPIXEL, STRIP_SIX_PIN>(strip_six_leds, NUM_PIXELS_PER_STRIP);
-  FastLED.addLeds<NEOPIXEL, STRIP_SEVEN_PIN>(strip_seven_leds, NUM_PIXELS_PER_STRIP);
-  FastLED.addLeds<NEOPIXEL, STRIP_EIGHT_PIN>(strip_eight_leds, NUM_PIXELS_PER_STRIP);
-  */
-
   FastLED.addLeds<NEOPIXEL, STRIP_ONE_PIN>(leds[0], NUM_PIXELS_PER_STRIP);
   FastLED.addLeds<NEOPIXEL, STRIP_TWO_PIN>(leds[1], NUM_PIXELS_PER_STRIP);
   FastLED.addLeds<NEOPIXEL, STRIP_THREE_PIN>(leds[2], NUM_PIXELS_PER_STRIP);
@@ -108,11 +70,6 @@ void moving_blue_line() {
 }
 
 void moving_red_dots_in_series() {
-  /*
-  for(int i = 0; i < NUM_STRIPS; i++ ) {
-    move_red_dot(all_strips[i]);
-  }
-  */
   // This outer loop will go over each strip, one at a time
   for(int x = 0; x < NUM_STRIPS; x++) {
     // This inner loop will go over each led in the current strip, one at a time
@@ -131,24 +88,42 @@ void bunchaRandoDots() {
   int rand_strip;
   int rand_led;
   int num_times = random(1,11);
+  int num_fade_levels = 32;
+  int fadeSettings[num_fade_levels] = {4,8,12,16,20,24,28,32,36,40,44,48,52,56,60,64,68,72,76,80,84,88,92,96,100,104,108,112,116,120,124,128};
 
-  pair selected_leds[num_times];
+  //pair selected_leds[num_times];
 
+  //Choose LEDs + colors
   for(int i = 0; i < num_times; i++) {
     rand_strip = random(0,NUM_STRIPS);
     rand_led = random(0,NUM_PIXELS_PER_STRIP);
     rand_h = random(0, 255);
-    selected_leds[i] = {rand_strip, rand_led};
-    leds[rand_strip][rand_led] = CHSV(rand_h, 255, 128);
+    selected_leds[i] = {rand_strip, rand_led, rand_h};
   }
 
-  FastLED.show();
+  for(int i = 0; i < num_fade_levels; i++) {
+    for(int j = 0; j < num_times; j++) {
+      leds[selected_leds[j].x][selected_leds[j].y] = CHSV(selected_leds[j].h, 255, fadeSettings[i]);
+    }
+    FastLED.show();
+    delay(100);
+  }
   
-  for(int i = 0; i < num_times; i++) {
-    leds[selected_leds[i].first][selected_leds[i].second] = CRGB::Black;
+  delay(900);
+
+  for(int i = (num_fade_levels - 1); i >= 0; i--) {
+    for(int j = 0; j < num_times; j++) {
+      leds[selected_leds[j].x][selected_leds[j].y] = CHSV(selected_leds[j].h, 255, fadeSettings[i]);
+    }
+    FastLED.show();
+    delay(100);
   }
 
-  delay(5000);
+  for(int j = 0; j < num_times; j++) {
+    leds[selected_leds[j].x][selected_leds[j].y] = CRGB::Black;
+  }
+  FastLED.show();
+  delay(1000);
 }
 
 void randoDot() {
@@ -164,45 +139,3 @@ void randoDot() {
   persistent_h++;
   delay(1000);
 }
-/*void move_red_dot(CRGB &leds) {
-  for(int dot = 0; dot < NUM_PIXELS_PER_STRIP; dot++) { 
-    leds[dot] = CRGB::Red;
-    FastLED.show();
-    // clear this led for the next time around the loop
-    leds[dot] = CRGB::Black;
-    delay(1000);
-  }
-}*/
-/*
-CRGB * generateColorSteps(CRGB starting_rgb, CRGB target_rgb, int num_desired_steps) {
-  CRGB[num_desired_steps + 2] steps;
-  //We know our starting and ending values, let's just figure out everything in between!
-  steps[0] = starting_rgb;
-  steps[num_desired_steps - 1] = target_rgb;
-
-  int starting_r = starting_rgb.r;
-  int target_r = target_rgb.r;
-  int starting_g = starting_rgb.g;
-  int target_g = target_rgb.g;
-  int starting_b = starting_rgb.b;
-  int target_b = target_rgb.b;
-
-  //for each channel (R, G, B)
-    int diff = target_r - starting_r;
-    //Because these are ints and not floats we're already discarding remainders
-    int delta = abs(diff) / num_desired_steps;
-    if(diff > 0) {
-      for(int i = 1; i <= num_desired_steps; i++) {
-        steps[i]
-      }
-    } else if(diff < 0) {
-      for(int i = 1; i <= num_desired_steps; i++) {
-  
-      }
-    }
-    
-    //for each step:
-      //if diff is positive, increment
-      //if diff is negative, decrement
-}
-*/
