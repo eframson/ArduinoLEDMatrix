@@ -1,9 +1,10 @@
 /* Comment this out to disable prints and save space */
-/* #define BLYNK_PRINT Serial */
-
+//#define BLYNK_DEBUG
+//#define BLYNK_PRINT Serial
 
 #include <ESP8266WiFi.h>
 #include <BlynkSimpleEsp8266.h>
+#include <LinkedList.h>
 
 #include "FastLED.h"
 #include "wifi_config.h"
@@ -38,14 +39,26 @@ CRGB primary_colors[] = {
   CRGB::FairyLight,
   CRGB::FairyLightNCC
 };
+int primary_color_hues[] = {
+  0,//red
+  32,//orange
+  64,//yellow //42.5?
+  96,//green
+  128,//aqua
+  160,//blue
+  192,//purple
+  224//pink
+};
 int fxIdx = 0;
 int displayOn = 0;
 int activeColorIdx = 1;
-int cursorWidth = 1;
+int cursorWidth = 0;
 int delayTime = 100;
 int doRainbow = 0;
 int led_grid_by_column[NUM_COLS][NUM_ROWS];
 int clearOnNext = 0;
+int brightnessValue = 255;
+int persistentHue = 0;
 
 //TODO: Experiment with some kind of sine/logarithmic/exponential values here
 //int fadeSettings[NUM_FADE_LEVELS] = {4,8,12,16,20,24,28,32,36,40,44,48,52,56,60,64,68,72,76,80,84,88,92,96,100,104,108,112,116,120,124,128};
@@ -55,10 +68,6 @@ struct led_coord {
   int x;
   int y;
   int led_idx;
-
-  String toString() {
-	  return "x: " + String(x) + ", y: " + String(y) + ", led_idx: " + String(led_idx);
-  }
 };
 
 struct led_meta {
@@ -202,9 +211,9 @@ led_coord getNextHorizontalLEDIdx(int x, int y, char* dir, int advancing = 0, ch
         //At end (beginning, technically) of strip
         y = _getNextYBasedOnDesiredHorizontalLoopingStrategy(y, loopDir);
 
-		if (!switchDirection) {
-			x = NUM_COLS - 1;
-		}
+        if (!switchDirection) {
+          x = NUM_COLS - 1;
+        }
 
         nextLED.x = x;
         nextLED.y = y;
@@ -224,14 +233,17 @@ led_coord getNextHorizontalLEDIdx(int x, int y, char* dir, int advancing = 0, ch
   return nextLED;
 }
 
-led_coord getNextVerticalLEDIdx(int x, int y, char* dir, int advancing = 0, char* loopDir = "right") {
+led_coord getNextVerticalLEDIdx(int x, int y, char* dir, int advancing = 0, char* loopDir = "right", int switchDirection = 0) {
   led_coord nextLED;
   if (dir == "S"){
     if (advancing == 1){
       if ( y == NUM_ROWS - 1 ) {
         //At end of strip
         x = _getNextXBasedOnDesiredVerticalLoopingStrategy(x, loopDir);
-        y = 0;
+        
+        if (!switchDirection) {
+          y = 0;
+        }
 
         nextLED.x = x;
         nextLED.y = y;
@@ -247,7 +259,10 @@ led_coord getNextVerticalLEDIdx(int x, int y, char* dir, int advancing = 0, char
       if ( y == 0 ) {
         //At end (beginning, technically) of strip
         x = _getNextXBasedOnDesiredVerticalLoopingStrategy(x, loopDir);
-        y = NUM_ROWS - 1;
+
+        if (!switchDirection) {
+          y = NUM_ROWS - 1;
+        }
         
         nextLED.x = x;
         nextLED.y = y;
@@ -399,9 +414,6 @@ void horizSequentialPattern(char* start_dir = "E", int fadeTrailLength = 0, char
   nextLED.led_idx = getLedIdxByXYCoords(starting_x, starting_y);
   
   leds[nextLED.led_idx] = primary_colors[activeColorIdx - 1];
-  Serial.print(starting_x);
-  Serial.print(",");
-  Serial.println(starting_y);
   FastLED.show();
   leds[nextLED.led_idx] = CRGB::Black;
   delay(delayTime);
@@ -426,9 +438,6 @@ void horizSequentialPattern(char* start_dir = "E", int fadeTrailLength = 0, char
 
     nextLED = getNextHorizontalLEDIdx(nextLED.x, nextLED.y, dir, 1, loopDir, 1);
     leds[nextLED.led_idx] = primary_colors[activeColorIdx - 1];
-    Serial.print(nextLED.x);
-    Serial.print(",");
-    Serial.println(nextLED.y);
     FastLED.show();
     leds[nextLED.led_idx] = CRGB::Black;
     delay(delayTime);
@@ -443,31 +452,124 @@ void horizSequentialPattern(char* start_dir = "E", int fadeTrailLength = 0, char
     }
   }
 }
-/* Patterns:
- * Horizontal (options: advancing/non-advancing, direction/origin, fading trail) 
- * --------->  --------->  <---------  <----------
- *             --------->              <----------
- *             --------->              <----------
- * 
- * Vertical (options: advancing/non-advancing, direction/origin, fading trail)
- * ^   ^ ^ ^   |   | | |
- * |   | | |   |   | | |
- * |   | | |   |   | | |
- * |   | | |   |   | | |
- * |   | | |   V   V V V
- * 
- * Sequential - Horizontal (options: fading trail, starting direction/origin--which is basically the same alternation except starting differently)
- * --------->   <---------
- * <---------   --------->
- * --------->   <---------
- * 
- * Sequential - Vertical (options: fading trail, starting direction/origin--which is basically the same alternation except starting differently)
- * ^ | ^        | ^ |
- * | | |        | | |
- * | | |        | | |
- * | | |        | | |
- * | V |        V | V
- */
+
+void vertSequentialPattern(char* start_dir = "S", int fadeTrailLength = 0, char* loopDir = "right", int num_iterations = -1, int custom_start_x = -1, int custom_start_y = -1) { //TODO: Implement fade trail
+  int starting_x = 0;
+  int starting_y = 0;
+  
+  if(custom_start_x > -1 && custom_start_y > -1){
+    starting_x = custom_start_x;
+    starting_y = custom_start_y;
+  } else {
+    if(start_dir == "S"){
+      starting_y = 0;
+    }else{
+      starting_y = NUM_ROWS - 1;
+    }
+    
+    if(loopDir == "right"){
+      starting_x = 0;
+    } else{
+      starting_x = NUM_COLS - 1;
+    }
+  }
+
+  LinkedList<led_coord> fadingLEDs;
+  int hueValue;
+  if(activeColorIdx == -1){
+    hueValue = persistentHue;
+  }else{
+    hueValue = primary_color_hues[activeColorIdx];
+  }
+
+  led_coord nextLED;
+  nextLED.x = starting_x;
+  nextLED.y = starting_y;
+  nextLED.led_idx = getLedIdxByXYCoords(starting_x, starting_y);
+
+  leds[nextLED.led_idx] = CHSV(hueValue, 255, brightnessValue);
+  FastLED.show();
+  leds[nextLED.led_idx] = CRGB::Black;
+  delay(delayTime);
+  if(delayTime > 500){
+    Blynk.run();
+  }
+
+  if(fadeTrailLength > 0){
+    fadingLEDs.unshift(nextLED);
+  }
+
+  if(num_iterations == -1){
+    num_iterations = (NUM_ROWS * NUM_COLS) - 1;
+    /*if(fadeTrailLength > 0){
+      num_iterations += num_iterations + 2;
+    }*/
+  }
+
+  int blynk_run_frequency = _calculate_blynk_should_run_frequency();
+  char* dir = start_dir;
+
+  int dimmedBrightnessValue;
+  float baseDimmingStep = (1 / (float)(fadeTrailLength + 1)) * 100;
+  float currentDimValue;
+  for(int i = 0; i < num_iterations; i++){
+    
+    int current_x = nextLED.x;
+    int listSize = fadingLEDs.size();
+    
+    if(i % blynk_run_frequency == 0){
+      Blynk.run();
+    }
+
+    //if fading trail:
+    if(fadeTrailLength > 0){
+      //decrease brightness of all pixels in the list
+      for(int j = 0; j < listSize; j++){
+        led_coord led = fadingLEDs.get(j);
+        if(listSize > 1 && j == listSize - 1){
+          //set the last pixel in the trail to black
+          leds[led.led_idx] = CRGB::Black;
+        }else{
+          currentDimValue = brightnessValue - ((j + 1) * baseDimmingStep);
+          dimmedBrightnessValue = map(currentDimValue,0,100,0,brightnessValue);
+          leds[led.led_idx] = CHSV(hueValue, 255, dimmedBrightnessValue);
+        }
+      }
+      //Remove the last pixel in the list
+      if(listSize == fadeTrailLength + 2){
+        led_coord removed = fadingLEDs.pop();
+      }
+    }
+
+    nextLED = getNextVerticalLEDIdx(nextLED.x, nextLED.y, dir, 1, loopDir, 1);
+    if(activeColorIdx == -1){
+      hueValue++;
+    }
+    leds[nextLED.led_idx] = CHSV(hueValue, 255, brightnessValue);
+    FastLED.show();
+
+    if(fadeTrailLength > 0){
+      //add the new LED to the beginning of the list
+      fadingLEDs.unshift(nextLED);
+    }else{
+      leds[nextLED.led_idx] = CRGB::Black;
+    }
+    delay(delayTime);
+
+    //switch dir if we just changed lines
+    if(current_x != nextLED.x){
+      if(dir == "S"){
+        dir = "N";
+      }else if(dir == "N"){
+        dir = "S";
+      }
+    }
+  }
+
+  if(activeColorIdx == -1){
+    persistentHue = hueValue;
+  }
+}
 
 void displayCursor()
 {
@@ -559,13 +661,14 @@ BLYNK_WRITE(V3)
 
 BLYNK_WRITE(V4)
 {
-  int brightnessValue = param.asInt();
-  if(brightnessValue < 0){
-    brightnessValue = 0;
-  } else if (brightnessValue > 255) {
-    brightnessValue = 255;
+  int input = param.asInt();
+  if(input < 0){
+    input = 0;
+  } else if (input > 255) {
+    input = 255;
   }
-  FastLED.setBrightness(brightnessValue);
+  brightnessValue = input;
+  //FastLED.setBrightness(brightnessValue);
 }
 
 BLYNK_WRITE(V5)
@@ -679,11 +782,44 @@ void loop()
       clearOnNext = 0;
     }
 
-    horizSequentialPattern("E");
-    horizSequentialPattern("E", 0, "up", -1, 0, (NUM_ROWS - 1));
+    switch (fxIdx) {
+      case 0:
+        clearDisplay();
+        vertSequentialPattern("S", cursorWidth);
+        break;
 
-    horizSequentialPattern("W");
-    horizSequentialPattern("W", 0, "up", -1, (NUM_COLS - 1), (NUM_ROWS - 1));
+      case 1:
+        vertSequentialPattern("S", 0, "left", -1, (NUM_COLS - 1), 0);
+        break;
+
+      case 2:
+        vertSequentialPattern("N");
+        break;
+
+      case 3:
+        vertSequentialPattern("N", 0, "left", -1, (NUM_COLS - 1), (NUM_ROWS - 1));
+        break;
+      
+      case 4:
+        horizSequentialPattern("E");
+        break;
+
+      case 5:
+        horizSequentialPattern("E", 0, "up", -1, 0, (NUM_ROWS - 1));
+        break;
+
+      case 6:
+        horizSequentialPattern("W");
+        break;
+
+      case 7:
+        horizSequentialPattern("W", 0, "up", -1, (NUM_COLS - 1), (NUM_ROWS - 1));
+        break;
+
+      default:
+        fxIdx = 0;
+        break;
+    }
     /*if(fxIdx == 0){
       horizPattern("E", 0, 0, "", NUM_COLS - 1);
     } else if (fxIdx == 1) {
