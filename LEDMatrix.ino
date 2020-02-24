@@ -78,6 +78,7 @@ struct led_meta {
 
 //Should this be global or function specific? Could have uses either way...
 led_meta selected_leds[MAX_NUM_LEDS_LIT];
+LinkedList<led_coord> fadingLEDs;
 
 int getLedIdxByXYCoords(int x, int y) {
   return led_grid_by_column[x][y];
@@ -474,12 +475,21 @@ void vertSequentialPattern(char* start_dir = "S", int fadeTrailLength = 0, char*
     }
   }
 
-  LinkedList<led_coord> fadingLEDs;
   int hueValue;
   if(activeColorIdx == -1){
     hueValue = persistentHue;
   }else{
     hueValue = primary_color_hues[activeColorIdx];
+  }
+
+  int dimmedBrightnessValue;
+  float baseDimmingStep = (1 / (float)(fadeTrailLength + 1)) * 100;
+  float currentDimValue;
+  int brightnessLevels[fadeTrailLength];
+  for(int i = 0; i < fadeTrailLength; i++){
+      currentDimValue = 100 - ((i + 1) * baseDimmingStep);
+      dimmedBrightnessValue = map(currentDimValue,0,100,0,brightnessValue);
+      brightnessLevels[i] = dimmedBrightnessValue;
   }
 
   led_coord nextLED;
@@ -489,14 +499,16 @@ void vertSequentialPattern(char* start_dir = "S", int fadeTrailLength = 0, char*
 
   leds[nextLED.led_idx] = CHSV(hueValue, 255, brightnessValue);
   FastLED.show();
-  leds[nextLED.led_idx] = CRGB::Black;
   delay(delayTime);
   if(delayTime > 500){
     Blynk.run();
   }
 
   if(fadeTrailLength > 0){
+    //add the new LED to the beginning of the list
     fadingLEDs.unshift(nextLED);
+  }else{
+    leds[nextLED.led_idx] = CRGB::Black;
   }
 
   if(num_iterations == -1){
@@ -509,13 +521,12 @@ void vertSequentialPattern(char* start_dir = "S", int fadeTrailLength = 0, char*
   int blynk_run_frequency = _calculate_blynk_should_run_frequency();
   char* dir = start_dir;
 
-  int dimmedBrightnessValue;
-  float baseDimmingStep = (1 / (float)(fadeTrailLength + 1)) * 100;
-  float currentDimValue;
+
   for(int i = 0; i < num_iterations; i++){
     
     int current_x = nextLED.x;
     int listSize = fadingLEDs.size();
+    int brightness;
     
     if(i % blynk_run_frequency == 0){
       Blynk.run();
@@ -526,17 +537,21 @@ void vertSequentialPattern(char* start_dir = "S", int fadeTrailLength = 0, char*
       //decrease brightness of all pixels in the list
       for(int j = 0; j < listSize; j++){
         led_coord led = fadingLEDs.get(j);
-        if(listSize > 1 && j == listSize - 1){
+        if(listSize > 2 && listSize == fadeTrailLength + 1 && j >= listSize - 1){
           //set the last pixel in the trail to black
           leds[led.led_idx] = CRGB::Black;
         }else{
-          currentDimValue = brightnessValue - ((j + 1) * baseDimmingStep);
-          dimmedBrightnessValue = map(currentDimValue,0,100,0,brightnessValue);
-          leds[led.led_idx] = CHSV(hueValue, 255, dimmedBrightnessValue);
+          //Just some basic sanity checking
+          if(j < fadeTrailLength){
+            brightness = brightnessLevels[j];
+          }else{
+            brightness = 0;
+          }
+          leds[led.led_idx] = CHSV(hueValue, 255, brightness);
         }
       }
       //Remove the last pixel in the list
-      if(listSize == fadeTrailLength + 2){
+      for(int k=0; k < (listSize - (fadeTrailLength + 1)); k++){
         led_coord removed = fadingLEDs.pop();
       }
     }
@@ -632,7 +647,8 @@ void clearDisplay()
   for(int dot = 0; dot < NUM_LEDS; dot++) { 
       leds[dot] = CRGB::Black;
       FastLED.show();
-  }  
+  }
+  fadingLEDs.clear();
 }
 
 void switchToNextAnimation()
@@ -760,7 +776,8 @@ void setup()
   // Debug console
   Serial.begin(9600);
 
-  FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS).setCorrection(CRGB(255, 180, 160));
+  //FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS).setCorrection(CRGB(255, 180, 160));
+  FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);
 
   //Turn on to show we've got power
   pinMode(LED_BUILTIN, OUTPUT);
@@ -784,7 +801,6 @@ void loop()
 
     switch (fxIdx) {
       case 0:
-        clearDisplay();
         vertSequentialPattern("S", cursorWidth);
         break;
 
